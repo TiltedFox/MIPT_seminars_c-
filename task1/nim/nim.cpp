@@ -28,22 +28,40 @@ void print_lines(std::vector<int> lines) {
     }
 }
 
-void is_correct_cin(int line, int amount) {
-    if (line == 0 && amount == 0) {}
-    else if ((line < 1 || line > 3) || (amount < 1 || amount > 5)) {
-        std::cout << "Неверный ввод, попробуйте снова\n";
+bool is_correct_cin(int line, int amount, std::vector<int> lines) {
+    if (line == 0 && amount == 0)
+        return 1;
+
+    if (line < 0 || line > 3) {              //Проверка на номер строки
+        return 0;
     }
+    else if (lines[line - 1] == 0) {         //Проверка на наличие звезд в строке
+        return 0;
+    }
+    else if (amount < 1) {                   //Проверка на положительно число звезд
+        return 0;
+    }
+    else if (lines[line - 1] < amount) {     //Проверка на количество звезд в строке
+        return 0;
+    }
+    else return 1;
 }
 
-std::vector<int> player_input() {
-    std::cout << "Make a move (write line number and amount of *)\n";
+std::vector<int> player_input(std::vector<int> lines) {
+    std::cout << "Ваш ход. Напишите номер строки и колчиство *\n";
     
     int line = 0;
     int amount = 0;
+    std::vector<int> move = {0, 1};
 
     std::cin >> line >> amount;
-    is_correct_cin(line, amount);
-    std::vector<int> move = {line, amount};
+
+    if (is_correct_cin(line, amount, lines)) {
+        move = {line, amount};
+    } else {
+        std::cout << "Неправильный ввод данных, попробуйте снова. \n";
+    }
+    std::cout << "--------------------------------------------\n";
 
     return move;
 }
@@ -66,19 +84,21 @@ bool is_ended(std::vector<int> lines) {
 int main() {
     try {
         std::vector<int> lines = {3, 4, 5};
-        std::vector<int> move(2);
-        
+        std::vector<int> move = {-1, 0};
+
         while (true) {
             print_lines(lines);
-            move = player_input();
-
-            if (move[0] == 0 && move[1] == 0) {
+            
+            move = player_input(lines);
+            
+            if (move[0] == 0 && move[1] == 0) {      //Проверка на досрочный выход
                 std::cout << "Досрочный выход";
                 break;
             }
 
             lines = make_move(move, lines);
-            if (is_ended(lines)) {
+
+            if (is_ended(lines)) {                   //Проверка на победу 
                 std::cout << "Кто-то победил";
                 break;
             }
