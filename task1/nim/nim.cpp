@@ -60,6 +60,7 @@ std::vector<int> player_input(std::vector<int> lines) {
         move = {line, amount};
     } else {
         std::cout << "Неправильный ввод данных, попробуйте снова. \n";
+        return {-1, -1};
     }
     std::cout << "--------------------------------------------\n";
 
@@ -81,25 +82,80 @@ bool is_ended(std::vector<int> lines) {
     } else return 0;
 }
 
+bool nim_sum(std::vector<int> lines) {
+    int s = 0;
+    for (int amount : lines) {
+        s ^= amount;
+    }
+
+    if (s == 0)
+        return 1;
+    
+    return 0;
+}
+
+std::vector<int> bot_input(std::vector<int> lines) {
+    std::vector<int> old_lines = lines;
+
+    for (int i = 0; i < lines.size(); ++i) {
+
+        for (int amount = lines[i]; amount > 0; amount--) {
+            lines[i] -= 1;
+            if  (nim_sum(lines)) {
+                return lines;
+            }
+        }
+        lines = old_lines;
+    }
+
+    lines = old_lines;
+    for (int i = 0; i < lines.size(); ++i) {
+
+        if (lines[i] > 0) {
+            lines[i] -= 1;
+            return lines;
+        }
+    }
+    return {0,0};
+}
+
 int main() {
     try {
         std::vector<int> lines = {3, 4, 5};
         std::vector<int> move = {-1, 0};
+        int whose_turn = 1;
 
         while (true) {
             print_lines(lines);
             
-            move = player_input(lines);
-            
-            if (move[0] == 0 && move[1] == 0) {      //Проверка на досрочный выход
-                std::cout << "Досрочный выход";
+
+            while (whose_turn == 1) {
+                move = player_input(lines);              //Ход человека
+                
+                if (move[0] == 0 && move[1] == 0) {      //Проверка на досрочный выход
+                    std::cout << "Досрочный выход";
+                    whose_turn = 2;
+                    break;
+                } else if (move[0] == -1 && move[1] == -1) {}
+                else { 
+                    lines = make_move(move, lines);
+                    whose_turn = 0;
+                }
+            }
+
+            if (whose_turn == 2) {
+                break;
+            }
+            if (is_ended(lines)) {                   //Проверка на победу 
+                std::cout << "Вы победили!";
                 break;
             }
 
-            lines = make_move(move, lines);
+            lines = bot_input(lines);
+            whose_turn = 1;
 
             if (is_ended(lines)) {                   //Проверка на победу 
-                std::cout << "Кто-то победил";
+                std::cout << "Вы проиграли";
                 break;
             }
         }
